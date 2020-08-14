@@ -1,13 +1,19 @@
-import torch
-from sklearn.model_selection import train_test_split
-
 '''
 Definiremos aqui o modelo neural e as funções que usaremos para
 treiná-lo. Os dados usados serão os fornecidos por pre_process.py
 '''
+import torch
+from sklearn.model_selection import train_test_split
+
+RANDOM_SEED = 42 #heh
+torch.manual_seed(RANDOM_SEED)
+
+MODEL_PATH='FFN_2HL_COVID.pt'
+EPOCHS = 1000
 
 
-# Classe da rede que usarei: feed-forward simples com duas camadas ocultas
+# Classe da rede neural:
+# feed-forward simples com duas camadas ocultas
 class FFN_2HLayers(nn.Module):
     super(FFN_2HLayers, self).__init__()
 
@@ -66,6 +72,47 @@ def transfer_to_device(data, network, criteria):
 
     transfered_data = (x_train, y_train, x_val, y_val)
     return (transfered_data, network, criteria)
+
+
+###############################################################################
+
+# Função principal de treino
+# Realiza o treino de uma rede usando dados, função, e critério de otimização
+# fornecidos. Salva o modelo em MODEL_PATH
+def train_network(data, network, optimization, criteria, path=MODEL_PATH):
+
+    (data, network, criteria) = transfer_to_device(data, network, criteria)
+    (x_train, y_train, x_val, y_val) = data
+
+    # epoch = ciclo de treino
+    for epoch in range(EPOCHS):
+        
+        y_guess = network(x_train)
+        y_guess = torch.squeeze(y_guess)
+        train_loss = criteria(y_guess, y_train) # cálculo de custo
+
+        # resultados parciais
+        if epoch % 100 == 0:
+            train_acc = accuracy(y_train, y_guess)
+            y_val_pred = network(x_val)
+            y_val_pred = torch.squeeze(y_val_pred)
+            val_loss = criteria(y_val_pred, y_val)
+            val_acc = accuracy(y_val, y_val_pred)
+
+            tr_loss = round_tensor(train_loss)
+            tr_acc  = round_tensor(train_acc)
+            vl_loss = round_tensor(val_loss)
+            vl_acc  = round_tensor(val_acc)
+
+            print('Epoch {0}'.format(epoch))
+            print('Train Set --------- loss:{0}; acc:{1}'.format(tr_loss, tr_acc))
+            print('Validation Set  --- loss:{0}; acc:{1}'.format(vl_loss, vl_acc))
+
+        optimization.zero_grad()
+        train_loss.backward()
+        optimization.step()
+
+    torch.save(network, path)
 
 
 

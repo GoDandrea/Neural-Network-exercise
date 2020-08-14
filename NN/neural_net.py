@@ -1,9 +1,12 @@
+import torch
+from torch import nn
+from torch import sigmoid
+from sklearn.model_selection import train_test_split
+
 '''
 Definiremos aqui o modelo neural e as funções que usaremos para
 treiná-lo. Os dados usados serão os fornecidos por pre_process.py
 '''
-import torch
-from sklearn.model_selection import train_test_split
 
 RANDOM_SEED = 42 #heh
 torch.manual_seed(RANDOM_SEED)
@@ -14,17 +17,19 @@ EPOCHS = 1000
 
 # Classe da rede neural:
 # feed-forward simples com duas camadas ocultas
-class FFN_2HLayers(nn.Module):
-    super(FFN_2HLayers, self).__init__()
+class FFN_2HLayers(torch.nn.Module):
+    
+    def __init__(self, n_features, n_hl1, n_hl2):
+        super(FFN_2HLayers, self).__init__()
 
-    self.hidden1 = nn.Linear(n_features, n_hl1)
-    self.hidden2 = nn.Linear(n_hl1, n_hl2)
-    self.output_layer = nn.Linear(n_hl2, 3)
+        self.hidden1 = torch.nn.Linear(n_features, n_hl1)
+        self.hidden2 = torch.nn.Linear(n_hl1, n_hl2)
+        self.output_layer = torch.nn.Linear(n_hl2, 3)
 
 
     def forward(self, x):
         h1 = nn.functional.relu(self.hidden1(x))
-        h2 = nn.functional.relu(self.(h1))
+        h2 = nn.functional.relu(self.hidden2(h1))
         y = sigmoid(self.output_layer(h2))
         return y
 
@@ -104,7 +109,7 @@ def train_network(data, network, optimization, criteria, path=MODEL_PATH):
             vl_loss = round_tensor(val_loss)
             vl_acc  = round_tensor(val_acc)
 
-            print('Epoch {0}'.format(epoch))
+            print('\nEpoch {0}'.format(epoch))
             print('Train Set --------- loss:{0}; acc:{1}'.format(tr_loss, tr_acc))
             print('Validation Set  --- loss:{0}; acc:{1}'.format(vl_loss, vl_acc))
 

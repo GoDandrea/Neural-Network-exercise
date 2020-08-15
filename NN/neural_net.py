@@ -17,14 +17,14 @@ EPOCHS = 1000
 
 # Classe da rede neural:
 # feed-forward simples com duas camadas ocultas
-class FFN_2HLayers(torch.nn.Module):
+class FFN_2HLayers(nn.Module):
     
     def __init__(self, n_features, n_hl1, n_hl2):
         super(FFN_2HLayers, self).__init__()
 
-        self.hidden1 = torch.nn.Linear(n_features, n_hl1)
-        self.hidden2 = torch.nn.Linear(n_hl1, n_hl2)
-        self.output_layer = torch.nn.Linear(n_hl2, 3)
+        self.hidden1 = nn.Linear(n_features, n_hl1)
+        self.hidden2 = nn.Linear(n_hl1, n_hl2)
+        self.output_layer = nn.Linear(n_hl2, 3)
 
 
     def forward(self, x):
@@ -35,7 +35,7 @@ class FFN_2HLayers(torch.nn.Module):
 
 
 # Adequa dados para uso pela rede
-def split_data(data, val_size=0.1, seed=RANDOM_SEED):
+def split_data(data, val_size=0.2, seed=RANDOM_SEED):
 
     x = data[['DIM', 'DHL', 'TGO', 'TGP']]
     y = data[['PCR', 'IGG', 'IGM']]
@@ -53,8 +53,8 @@ def split_data(data, val_size=0.1, seed=RANDOM_SEED):
 
 
 # Cálculo de corretude de uma previsão
-def accuracy(guess, actual):
-    prediction = guess.ge(.5).view(-1)
+def accuracy(actual, guess):
+    prediction = guess.ge(.5)
     return (actual == prediction).sum().float() / len(actual)
 
 # Arredonda componentes de um tensor
@@ -84,7 +84,7 @@ def transfer_to_device(data, network, criteria):
 # Função principal de treino
 # Realiza o treino de uma rede usando dados, função, e critério de otimização
 # fornecidos. Salva o modelo em MODEL_PATH
-def train_network(data, network, optimization, criteria, path=MODEL_PATH):
+def train_network(data, network, optimizer, criteria, path=MODEL_PATH):
 
     (data, network, criteria) = transfer_to_device(data, network, criteria)
     (x_train, y_train, x_val, y_val) = data
@@ -113,9 +113,9 @@ def train_network(data, network, optimization, criteria, path=MODEL_PATH):
             print('Train Set --------- loss:{0}; acc:{1}'.format(tr_loss, tr_acc))
             print('Validation Set  --- loss:{0}; acc:{1}'.format(vl_loss, vl_acc))
 
-        optimization.zero_grad()
+        optimizer.zero_grad()
         train_loss.backward()
-        optimization.step()
+        optimizer.step()
 
     torch.save(network, path)
 

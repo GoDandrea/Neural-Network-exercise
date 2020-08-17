@@ -1,5 +1,6 @@
 from PRE.pre_process import get_einstein, get_fleury, join_data
 from NN.neural_net import FFN_2HLayers, split_data, train_network
+from interface import use_iteratively
 import torch
 
 import pandas as pd
@@ -16,6 +17,18 @@ LEARNING_RATE = 0.001
 MODEL_PATH = 'FFN_2HL_COVID.pt'
 
 if __name__ == '__main__':
+
+    message1 = '>>> Entre "U" para utilizar a rede em '
+    message2 = '>>> Entre "T" para treinar uma rede nova:\n>>>'
+    mode = input(message1+MODEL_PATH+message2)
+
+    if (mode != 'U') and (mode != 'T'):
+        print('Modo', mode, 'inválido. Encerrando programa.\n')
+    elif (mode == 'U'):
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        use_iteratively(MODEL_PATH, device)
+        print('Encerrando programa.\n')
+        return None
 
     try:
         print("Loading pre-processed data")

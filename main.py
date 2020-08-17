@@ -28,30 +28,30 @@ if __name__ == '__main__':
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         use_iteratively(MODEL_PATH, device)
         print('Encerrando programa.\n')
-        return None
 
-    try:
-        print("Loading pre-processed data")
-        processed_data = pd.read_csv('PRE/treated.csv', sep='|')
-    except:
-        print("pre-processed data not found.")
-        print("Loading Einstein's data")
-        ein_data = get_einstein('PRE/dados/einstein_exames.csv')
-        print("Loading Fleury's data")
-        fleury_data = get_fleury('PRE/dados/fleury_exames.csv')
-        print("Joining data")
-        processed_data = join_data(ein_data, fleury_data)
-        
-    print("Splitting data")
-    splitted_data = split_data(processed_data)
+    else:
+        try:
+            print("Carregando dados prá-processados")
+            processed_data = pd.read_csv('PRE/treated.csv', sep='|')
+        except:
+            print("Dados pré-processados não encontrados")
+            print("Carregando dados do Einstein")
+            ein_data = get_einstein('PRE/dados/einstein_exames.csv')
+            print("Carregando dados do Fleury")
+            fleury_data = get_fleury('PRE/dados/fleury_exames.csv')
+            print("Unificando dados")
+            processed_data = join_data(ein_data, fleury_data)
+            
+        print("Separando dados para treino")
+        splitted_data = split_data(processed_data)
 
-    print("Building model")
-    x_train = splitted_data[0]
-    network = FFN_2HLayers(x_train.shape[1], N_HL1, N_HL2)
-    optimizer = torch.optim.Adam(network.parameters(), lr=LEARNING_RATE)
-    criteria = torch.nn.BCELoss()
+        print("Montando modelo")
+        x_train = splitted_data[0]
+        network = FFN_2HLayers(x_train.shape[1], N_HL1, N_HL2)
+        optimizer = torch.optim.Adam(network.parameters(), lr=LEARNING_RATE)
+        criteria = torch.nn.BCELoss()
 
-    print('Training...')
-    train_network(splitted_data, network, optimizer, criteria, MODEL_PATH)
-    print('Model trained successfully.\nIt was saved at ' + MODEL_PATH)
+        print('Treinando...')
+        train_network(splitted_data, network, optimizer, criteria, MODEL_PATH)
+        print('Modelo treinado com sucesso.\nEstá salvo em ' + MODEL_PATH)
 
